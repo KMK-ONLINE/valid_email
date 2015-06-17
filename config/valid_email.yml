@@ -522,4 +522,9 @@ disposable_email_services:
   - zippymail.info
   - zoaxe.com
   - zoemail.org
-  -
+
+  # Individual domains that abuse sign up
+  - debestpro.com
+  - hyndiaband.com
+  - music.urbanoir.info
+  - voidbay.com
