@@ -89,9 +89,13 @@ class ValidateEmail
 
     def ban_disposable_email?(value)
       m = Mail::Address.new(value)
-      m.domain && !BanDisposableEmailValidator.config.include?(m.domain)
+      m.domain && matched_disposable_domain(m.domain).empty?
     rescue Mail::Field::ParseError
       false
+    end
+
+    def matched_disposable_domain(domain)
+      BanDisposableEmailValidator.config.select { |e| Regexp.new(e).match(domain) }
     end
   end
 end

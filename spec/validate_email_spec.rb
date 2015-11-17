@@ -62,4 +62,49 @@ describe ValidateEmail do
       ValidateEmail.valid_local?('!#$%&\'*+-/=?^_`{|}~."\\\\\ \"(),:;<>@[]"').should be_truthy
     end
   end
+
+  describe ".ban_disposable_email?" do
+    context "domain is empty" do
+      it "returns false" do
+        expect(ValidateEmail.ban_disposable_email?("name@")).to eq false
+      end
+    end
+
+    context "domain is not empty" do
+      context "domain exists in disposable dictionary" do
+        it "returns false" do
+          expect(ValidateEmail.ban_disposable_email?("name@yet.another.mailnator.com")).to eq false
+        end
+      end
+
+      context "domain doesn't exist in disposable dictionary" do
+        it "returns true" do
+          expect(ValidateEmail.ban_disposable_email?("name@domain-does-not-exists-in-dictionary.com")).to eq true
+        end
+      end
+    end
+  end
+
+  describe ".matched_disposable_domain" do
+    context "top level domain doesn't exists" do
+      it "returns empty array" do
+        domains = ValidateEmail.matched_disposable_domain("domain-does-not-exists-in-dictionary.com")
+        expect(domains).to be_empty
+      end
+    end
+
+    context "top level domain exists" do
+      it "returns array of domain" do
+        domains = ValidateEmail.matched_disposable_domain("mailinator.com")
+        expect(domains).to include "mailinator.com"
+      end
+    end
+
+    context "second level domain exists" do
+      it "returns array of domain" do
+        domains = ValidateEmail.matched_disposable_domain("another.mailinator.com")
+        expect(domains).to include "mailinator.com"
+      end
+    end
+  end
 end
