@@ -86,7 +86,7 @@ describe ValidateEmail do
   end
 
   describe ".matched_disposable_domain" do
-    context "top level domain doesn't exists" do
+    context "domain doesn't exists" do
       it "returns empty array" do
         domains = ValidateEmail.matched_disposable_domain("domain-does-not-exists-in-dictionary.com")
         expect(domains).to be_empty
@@ -94,15 +94,34 @@ describe ValidateEmail do
     end
 
     context "top level domain exists" do
-      it "returns array of domain" do
+      it "returns array of matched TLD" do
+        domains = ValidateEmail.matched_disposable_domain("effing-spammer-that-is-not-in-the-dictionary.tk")
+        expect(domains).to include "tk"
+      end
+
+      it "does not return domain name that has the blacklisted TLD in the name" do
+        domains = ValidateEmail.matched_disposable_domain("playground-tk-sd-smp-sma-kuliah.com")
+        expect(domains).to be_empty
+      end
+    end
+
+    context "top level domain name exists" do
+      it "returns array of matched domain" do
         domains = ValidateEmail.matched_disposable_domain("mailinator.com")
         expect(domains).to include "mailinator.com"
       end
     end
 
-    context "second level domain exists" do
-      it "returns array of domain" do
+    context "second level domain name exists" do
+      it "returns array of matched domain" do
         domains = ValidateEmail.matched_disposable_domain("another.mailinator.com")
+        expect(domains).to include "mailinator.com"
+      end
+    end
+
+    context "arbitrary level domain name exists" do
+      it "returns array of matched domain" do
+        domains = ValidateEmail.matched_disposable_domain("yet.another.effing.mailinator.com")
         expect(domains).to include "mailinator.com"
       end
     end

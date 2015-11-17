@@ -687,3 +687,9 @@ disposable_email_services:
   - 10mail.org
   - email-fake.gq
   - qazs.gq
+
+  # blacklist all of the following TLDs
+  - cf
+  - ga
+  - gq
+  - tk
