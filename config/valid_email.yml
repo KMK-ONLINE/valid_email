@@ -619,7 +619,7 @@ disposable_email_services:
   - 2exchange.net
   - foxja.com
   - 46yahoo.com
-  - ahoo.co.id
+#  - ahoo.co.id
   - 17gmail.com
   - emal.com
   - g.mailcom
@@ -671,7 +671,7 @@ disposable_email_services:
   - 22yahoo.com
   - dinus.ac.id
   - musician.org
-  - ahoo.com
+#  - ahoo.com
   - reincarnate.com
   - 50yahoo.com
   - atmajaya.ac.id
