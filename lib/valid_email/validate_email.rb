@@ -1,11 +1,18 @@
+require 'mail'
+
 class ValidateEmail
   class << self
     SPECIAL_CHARS = %w(( ) , : ; < > @ [ ])
     SPECIAL_ESCAPED_CHARS = %w(\  \\ ")
     LOCAL_MAX_LEN = 64
+    DOMAIN_REGEX = /\A^([[:alpha:]]{1}|([[:alnum:]][a-zA-Z0-9-]{0,61}[[:alnum:]]))(\.([[:alnum:]][a-zA-Z0-9-]{0,61}[[:alnum:]]))+\z/
 
     def valid?(value, user_options={})
-      options = { :mx => false, :message => nil }.merge(user_options)
+      options = {
+        :mx => false,
+        :domain => false,
+        :message => nil
+      }.merge(user_options)
 
       m = Mail::Address.new(value)
       # We must check that value contains a domain and that value is an email address
@@ -20,7 +27,7 @@ class ValidateEmail
       return false unless m.domain.match(/^\S+$/)
 
       domain_dot_elements = m.domain.split(/\./)
-      return false unless domain_dot_elements.size > 1 && domain_dot_elements.all?(&:present?)
+      return false unless domain_dot_elements.size > 1 && !domain_dot_elements.any?(&:empty?)
 
       # Ensure that the local segment adheres to adheres to RFC-5322
       return false unless valid_local?(m.local)
@@ -31,9 +38,20 @@ class ValidateEmail
         return mx_valid?(value)
       end
 
+      if options[:domain]
+        require 'valid_email/domain_validator'
+        return domain_valid?(value)
+      end
+
       true
     rescue Mail::Field::ParseError
       false
+    rescue ArgumentError => error
+      if error.message == 'bad value for range'
+        false
+      else
+        raise error
+      end
     end
 
     def valid_local?(local)
@@ -65,7 +83,7 @@ class ValidateEmail
         # If we're not in a quoted dot atom then no special characters are allowed.
         return false unless ((SPECIAL_CHARS | SPECIAL_ESCAPED_CHARS) & dot_atom.split('')).empty?
       end
-      return true 
+      return true
     end
 
     def mx_valid?(value, fallback=false)
@@ -73,18 +91,33 @@ class ValidateEmail
       return false unless m.domain
 
       mx = []
-      Resolv::DNS.open do |dns|
-        mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::MX)
-        mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::A) if fallback
+      dns = Resolv::DNS.new
+      begin
+        Timeout.timeout(ValidEmail.dns_timeout) do
+          mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::MX)
+          mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::A) if fallback
+        end
+      rescue Timeout::Error
+        dns.close
+        return ValidEmail.dns_timeout_return_value
       end
 
+      dns.close
       return mx.any?
+
     rescue Mail::Field::ParseError
       false
     end
 
     def mx_valid_with_fallback?(value)
       mx_valid?(value, true)
+    end
+
+    def domain_valid?(value)
+      m = Mail::Address.new(value)
+      return false unless m.domain
+
+      !(m.domain =~ DOMAIN_REGEX).nil?
     end
 
     def ban_disposable_email?(value)
