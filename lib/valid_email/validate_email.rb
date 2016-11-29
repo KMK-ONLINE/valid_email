@@ -103,7 +103,7 @@ class ValidateEmail
       end
 
       dns.close
-      return mx.any?
+      return mx.any? && (mx.first.exchange.length > 0)
 
     rescue Mail::Field::ParseError
       false

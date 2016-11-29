@@ -121,6 +121,7 @@ describe ValidateEmail do
   describe '.mx_valid?' do
     let(:dns) { double(Resolv::DNS) }
     let(:dns_resource) { double(Resolv::DNS::Resource::IN::MX) }
+    let(:exchange) { double(Resolv::DNS::Name) }
 
     before do
       expect(Resolv::DNS).to receive(:new).and_return(dns)
@@ -129,6 +130,10 @@ describe ValidateEmail do
 
     it "returns true when MX is true and it doesn't timeout" do
       expect(dns).to receive(:getresources).and_return [dns_resource]
+
+      expect(dns_resource).to receive(:exchange).and_return exchange
+      expect(exchange).to receive(:length).and_return(1)
+
       expect(ValidateEmail.mx_valid?('aloha@kmkonline.co.id')).to be_truthy
     end
 
@@ -137,9 +142,18 @@ describe ValidateEmail do
       expect(ValidateEmail.mx_valid?('aloha@ga-ada-mx.com')).to be_falsey
     end
 
-    it "returns config.default when times out", focus: true do
+    it "returns config.default when times out" do
       Timeout.should_receive(:timeout).and_raise(Timeout::Error)
       expect(ValidateEmail.mx_valid?('aloha@ga-ada-mx.com')).to eq(ValidEmail.dns_timeout_return_value)
+    end
+
+    it "returns false when domain doest have mx server" do
+      expect(dns).to receive(:getresources).and_return [dns_resource]
+
+      expect(dns_resource).to receive(:exchange).and_return exchange
+      expect(exchange).to receive(:length).and_return(0)
+
+      expect(ValidateEmail.mx_valid?('aloha@yaho.com')).to be_falsey
     end
   end
 
