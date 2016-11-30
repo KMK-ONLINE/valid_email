@@ -194,6 +194,22 @@ describe ValidateEmail do
         ValidateEmail.mx_valid?('aloha@yaho.com', {fallback: true})
       end
     end
+
+    context "dns_timeout_return_value params" do
+      before do
+        Timeout.should_receive(:timeout).and_raise(Timeout::Error)
+      end
+
+      it "overide config dns_timeout_return_value when params dns_timeout_return_value present" do
+        allow(ValidEmail).to receive(:dns_timeout_return_value).and_return(true)
+        expect(ValidateEmail.mx_valid?('aloha@kmklabs.com', {dns_timeout_return_value: false})).to be_falsey
+      end
+
+      it "use config dns_timeout_return_value when params dns_timeout_return_value not present" do
+        allow(ValidEmail).to receive(:dns_timeout_return_value).and_return(true)
+        expect(ValidateEmail.mx_valid?('aloha@kmklabs.com')).to be_truthy
+      end
+    end
   end
 
   describe ".ban_disposable_email?" do

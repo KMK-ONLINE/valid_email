@@ -89,7 +89,8 @@ class ValidateEmail
     def mx_valid?(value, user_options={})
       options = {
         :fallback => false,
-        :timeout => ValidEmail.dns_timeout
+        :timeout => ValidEmail.dns_timeout,
+        :dns_timeout_return_value => ValidEmail.dns_timeout_return_value,
       }.merge(user_options)
 
       m = Mail::Address.new(value)
@@ -104,10 +105,14 @@ class ValidateEmail
         end
       rescue Timeout::Error
         dns.close
-        return ValidEmail.dns_timeout_return_value
+        return options[:dns_timeout_return_value]
       end
 
       dns.close
+      if options[:fallback] && (mx.first.respond_to?(:address))
+        return true
+      end
+
       return mx.any? && (mx.first.exchange.length > 0)
 
     rescue Mail::Field::ParseError
