@@ -86,16 +86,21 @@ class ValidateEmail
       return true
     end
 
-    def mx_valid?(value, fallback=false)
+    def mx_valid?(value, user_options={})
+      options = {
+        :fallback => false,
+        :timeout => ValidEmail.dns_timeout
+      }.merge(user_options)
+
       m = Mail::Address.new(value)
       return false unless m.domain
 
       mx = []
       dns = Resolv::DNS.new
       begin
-        Timeout.timeout(ValidEmail.dns_timeout) do
+        Timeout.timeout(options[:timeout]) do
           mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::MX)
-          mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::A) if fallback
+          mx.concat dns.getresources(m.domain, Resolv::DNS::Resource::IN::A) if options[:fallback]
         end
       rescue Timeout::Error
         dns.close
@@ -110,7 +115,7 @@ class ValidateEmail
     end
 
     def mx_valid_with_fallback?(value)
-      mx_valid?(value, true)
+      mx_valid?(value, {fallback: true})
     end
 
     def domain_valid?(value)

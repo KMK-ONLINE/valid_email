@@ -121,6 +121,7 @@ describe ValidateEmail do
   describe '.mx_valid?' do
     let(:dns) { double(Resolv::DNS) }
     let(:dns_resource) { double(Resolv::DNS::Resource::IN::MX) }
+    let(:dns_resource_a) { double(Resolv::DNS::Resource::IN::A) }
     let(:exchange) { double(Resolv::DNS::Name) }
 
     before do
@@ -154,6 +155,44 @@ describe ValidateEmail do
       expect(exchange).to receive(:length).and_return(0)
 
       expect(ValidateEmail.mx_valid?('aloha@yaho.com')).to be_falsey
+    end
+
+    context "timeout params" do
+      it "can accept timeout params to overide timeout config" do
+        timeout = 10
+        expect(Timeout).to receive(:timeout).with(timeout)
+
+        ValidateEmail.mx_valid?('aloha@yaho.com', {timeout: timeout})
+      end
+
+      it "using default timeout config when params timeout not set" do
+        expect(ValidEmail).to receive(:dns_timeout).and_return(2)
+        expect(Timeout).to receive(:timeout).with(2)
+
+        ValidateEmail.mx_valid?('aloha@yaho.com')
+      end
+    end
+
+    context "fallback params" do
+      it "doesnt check A record when fallback params not set" do
+        expect(dns).to receive(:getresources).with('yaho.com', Resolv::DNS::Resource::IN::MX).and_return [dns_resource]
+        expect(dns_resource).to receive(:exchange).and_return exchange
+        expect(exchange).to receive(:length).and_return(1)
+
+        expect(dns).not_to receive(:getresources).with('yaho.com', Resolv::DNS::Resource::IN::A)
+
+        ValidateEmail.mx_valid?('aloha@yaho.com')
+      end
+
+      it "can accept fallback params to check A record" do
+        expect(dns).to receive(:getresources).with('yaho.com', Resolv::DNS::Resource::IN::MX).and_return [dns_resource]
+        expect(dns_resource).to receive(:exchange).and_return exchange
+        expect(exchange).to receive(:length).and_return(1)
+
+        expect(dns).to receive(:getresources).with('yaho.com', Resolv::DNS::Resource::IN::A).and_return [dns_resource_a]
+
+        ValidateEmail.mx_valid?('aloha@yaho.com', {fallback: true})
+      end
     end
   end
 
