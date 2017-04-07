@@ -1,6 +1,5 @@
 resolv_dns_timeouts: 0.05
 disposable_email_services:
-  - kampungseleb.com
   - mailinator.com
   - devnullmail.com
   - daddymail.biz
