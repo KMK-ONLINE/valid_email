@@ -144,7 +144,7 @@ describe ValidateEmail do
     end
 
     it "returns config.default when times out" do
-      Timeout.should_receive(:timeout).and_raise(Timeout::Error)
+      expect(Timeout).to receive(:timeout).and_raise(Timeout::Error)
       expect(ValidateEmail.mx_valid?('aloha@ga-ada-mx.com')).to eq(ValidEmail.dns_timeout_return_value)
     end
 
@@ -197,7 +197,7 @@ describe ValidateEmail do
 
     context "dns_timeout_return_value params" do
       before do
-        Timeout.should_receive(:timeout).and_raise(Timeout::Error)
+        expect(Timeout).to receive(:timeout).and_raise(Timeout::Error)
       end
 
       it "overide config dns_timeout_return_value when params dns_timeout_return_value present" do
