@@ -222,7 +222,7 @@ describe ValidateEmail do
     context "domain is not empty" do
       context "domain exists in disposable dictionary" do
         it "returns false" do
-          expect(ValidateEmail.ban_disposable_email?("name@yet.another.mailnator.com")).to eq false
+          expect(ValidateEmail.ban_disposable_email?("name@mailnator.com")).to eq false
         end
       end
 
@@ -257,20 +257,6 @@ describe ValidateEmail do
     context "top level domain name exists" do
       it "returns array of matched domain" do
         domains = ValidateEmail.matched_disposable_domain("mailinator.com")
-        expect(domains).to include "mailinator.com"
-      end
-    end
-
-    context "second level domain name exists" do
-      it "returns array of matched domain" do
-        domains = ValidateEmail.matched_disposable_domain("another.mailinator.com")
-        expect(domains).to include "mailinator.com"
-      end
-    end
-
-    context "arbitrary level domain name exists" do
-      it "returns array of matched domain" do
-        domains = ValidateEmail.matched_disposable_domain("yet.another.effing.mailinator.com")
         expect(domains).to include "mailinator.com"
       end
     end

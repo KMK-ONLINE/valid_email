@@ -138,7 +138,13 @@ class ValidateEmail
     end
 
     def matched_disposable_domain(domain)
-      BanDisposableEmailValidator.config.select { |e| Regexp.new("#{ e }$").match(domain) }
+      BanDisposableEmailValidator.config.select do |e|
+        if e.size > 2
+          e == domain
+        else
+          Regexp.new("#{ e }$").match(domain)
+        end
+      end
     end
   end
 end
