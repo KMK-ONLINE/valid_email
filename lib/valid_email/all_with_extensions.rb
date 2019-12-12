@@ -2,7 +2,7 @@ require 'valid_email'
 class String
 
   def email?(options={})
-    ValidateEmail.valid?(self, options)
+    ValidEmail::ValidateEmail.valid?(self, options)
   end
 
 end

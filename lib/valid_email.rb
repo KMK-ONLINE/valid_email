@@ -1,7 +1,7 @@
 require 'valid_email/all'
 I18n.load_path += Dir.glob(File.expand_path('../../config/locales/**/*',__FILE__))
 
-class ValidEmail
+module ValidEmail
   def self.config= options
     @@config = options
   end
@@ -31,4 +31,4 @@ end
 config_yaml = File.expand_path('../../config/valid_email.yml',__FILE__)
 ValidEmail.config = YAML.load_file(config_yaml)
 
-BanDisposableEmailValidator.config= ValidEmail.disposable_email_services
+ValidEmail::BanDisposableEmailValidator.config = ValidEmail.disposable_email_services
